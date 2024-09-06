@@ -1,0 +1,77 @@
+import sqlite3
+from datetime import datetime
+
+# الاتصال بقاعدة البيانات (أو إنشاؤها)
+conn = sqlite3.connect('accounting.db')
+
+# إنشاء كائن لتشغيل الأوامر
+cursor = conn.cursor()
+
+# إنشاء جدول العملاء
+cursor.execute('''CREATE TABLE IF NOT EXISTS clients (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    address TEXT,
+                    phone TEXT
+                )''')
+
+# إنشاء جدول الفواتير
+cursor.execute('''CREATE TABLE IF NOT EXISTS invoices (
+                    id INTEGER PRIMARY KEY,
+                    client_id INTEGER,
+                    date TEXT,
+                    total REAL,
+                    FOREIGN KEY(client_id) REFERENCES clients(id)
+                )''')
+
+# إنشاء جدول المنتجات
+cursor.execute('''CREATE TABLE IF NOT EXISTS products (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    price REAL NOT NULL,
+                    quantity INTEGER NOT NULL
+                )''')
+
+conn.commit()
+
+# دالة لإضافة عميل جديد
+def add_client(name, address, phone):
+    cursor.execute("INSERT INTO clients (name, address, phone) VALUES (?, ?, ?)", (name, address, phone))
+    conn.commit()
+
+# دالة لإضافة منتج جديد
+def add_product(name, price, quantity):
+    cursor.execute("INSERT INTO products (name, price, quantity) VALUES (?, ?, ?)", (name, price, quantity))
+    conn.commit()
+
+# إضافة العملاء الجدد
+add_client('شركة الأمل', 'صنعاء', '123456789')
+add_client('هيثم عبد الرب احمد قاسم', 'تعز التربة', '774288946')
+add_client('مدين عبد الحفيظ البحيري', 'تعز سامع', '778685969')
+
+# إضافة منتج جديد
+add_product('حاسوب محمول', 500, 10)
+
+# دالة لإنشاء فاتورة
+def create_invoice(client_id, total):
+    date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    cursor.execute("INSERT INTO invoices (client_id, date, total) VALUES (?, ?, ?)", (client_id, date, total))
+    conn.commit()
+
+# إنشاء فاتورة بسيطة
+create_invoice(1, 1200)
+
+# دالة لاسترجاع قائمة العملاء
+def get_clients():
+    cursor.execute("SELECT * FROM clients")
+    return cursor.fetchall()
+
+# دالة لاسترجاع قائمة الفواتير
+def get_invoices():
+    cursor.execute("SELECT * FROM invoices")
+    return cursor.fetchall()
+
+# طباعة العملاء والفواتير
+print(get_clients())
+print(get_invoices())
+    
